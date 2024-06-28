@@ -28,12 +28,8 @@ MOBI is a web application developed to allow users to publish and view the lates
 
 ## Unit Tests
 
-Unit tests can be executed by running the file :
+- Unit tests can be executed by running the file :
 
 ```bash
 tests_unitaires.py
-```
-
-```
-
 ```
