@@ -1,0 +1,48 @@
+#NavbarItems{
+ display: flex;
+ padding: 0% 0% 0% 5%;
+ width: 100%;
+ font-family: 'Open Sans', sans-serif;
+ background-color: #ffff;
+ padding-bottom:  0%;
+
+ 
+}
+
+
+#logo{
+  padding-top: 1.5%;
+ 
+}
+.logonPer{
+width: 70%;
+}
+#nav-menu{
+    background-color: #ffff;
+    padding: 2% 0% 0% 15%;
+    display: grid;
+    grid-template-columns: repeat(4,auto);
+    grid-gap: 80%;
+    align-items :stretch;
+    list-style-type : none;
+    font-weight: bolder;
+    
+}
+
+#nav-links{
+  
+ 
+    white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+    
+   
+}
+ a{
+    color: #091638;
+    text-decoration: none;
+    white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+ }
+

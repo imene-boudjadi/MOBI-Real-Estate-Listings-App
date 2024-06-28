@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tests_unitaires &#8212; Documentation MOBI </title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/translations.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Recherche" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Code source de tests_unitaires</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">request</span> <span class="p">,</span> <span class="n">json</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">app</span> 
+<span class="kn">from</span> <span class="nn">static.models</span> <span class="kn">import</span> <span class="n">Annonce</span> <span class="p">,</span> <span class="n">User</span>
+<span class="kn">from</span> <span class="nn">static.db</span> <span class="kn">import</span> <span class="n">db_init</span> <span class="p">,</span> <span class="n">db</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+
+
+
+
+<div class="viewcode-block" id="TestAddAnnonce"><a class="viewcode-back" href="../tests_unitaires.html#tests_unitaires.TestAddAnnonce">[docs]</a><span class="k">class</span> <span class="nc">TestAddAnnonce</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>  <span class="c1">#classe pour tester ajouter annonce</span>
+<div class="viewcode-block" id="TestAddAnnonce.test_add_annonce_post"><a class="viewcode-back" href="../tests_unitaires.html#tests_unitaires.TestAddAnnonce.test_add_annonce_post">[docs]</a>    <span class="k">def</span> <span class="nf">test_add_annonce_post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">app</span><span class="o">.</span><span class="n">test_client</span><span class="p">()</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+        <span class="c1"># Test avec un prix valide</span>
+            <span class="c1"># Preparation des données de l&#39;annonce </span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">234</span><span class="p">,</span> <span class="mi">115</span><span class="p">),</span> <span class="s2">&quot;#7f00ff&quot;</span><span class="p">)</span>  
+            <span class="n">image_io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+            <span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">image_io</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;JPEG&quot;</span><span class="p">)</span>
+            <span class="n">image_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Test Annonce&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;categorie&#39;</span><span class="p">:</span> <span class="s1">&#39;Vente&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Appartement&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;surface&#39;</span><span class="p">:</span> <span class="s1">&#39;300&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Test unitaire de ajouter annonce&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;prix&#39;</span><span class="p">:</span> <span class="s1">&#39;1004360&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;contact&#39;</span><span class="p">:</span> <span class="s1">&#39;ki_boudjadi@esi.dz&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;wilaya&#39;</span><span class="p">:</span> <span class="s1">&#39;Alger&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;commune&#39;</span><span class="p">:</span> <span class="s1">&#39;oued semar&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;adresse&#39;</span><span class="p">:</span> <span class="s1">&#39;Appartement N 1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">image_io</span><span class="p">,</span> <span class="s1">&#39;test.jpeg&#39;</span><span class="p">)</span>
+            <span class="p">}</span>
+
+            <span class="c1"># envoyer un post pour ajouter l&#39;annonce à la base de donnees </span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/add_annonce&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="s1">&#39;multipart/form-data&#39;</span><span class="p">)</span>
+            
+            <span class="c1"># verifier si la reponse est correcte</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+
+            <span class="c1"># verifier que l&#39;annonce est stockée dans la base de données </span>
+            <span class="n">annonce</span> <span class="o">=</span> <span class="n">Annonce</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Test Annonce&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>  <span class="c1">#recuperer l&#39;annonce en utilisant &quot;name&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNotNone</span><span class="p">(</span><span class="n">annonce</span><span class="p">)</span>  <span class="c1">#verifier qu&#39;on a trouvé l&#39;annonce</span>
+
+            <span class="c1">#verifier l&#39;égalité des autres attributs</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">categorie</span><span class="p">,</span> <span class="s1">&#39;Vente&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="s1">&#39;Appartement&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">surface</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="s1">&#39;Test unitaire de ajouter annonce&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">prix</span><span class="p">,</span> <span class="mi">1004360</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">contact</span><span class="p">,</span> <span class="s1">&#39;ki_boudjadi@esi.dz&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">wilaya</span><span class="p">,</span> <span class="s1">&#39;Alger&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">commune</span><span class="p">,</span> <span class="s1">&#39;oued semar&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">adresse</span><span class="p">,</span> <span class="s1">&#39;Appartement N 1&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">date</span><span class="p">(),</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">date</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="s1">&#39;test.jpeg&#39;</span><span class="p">)</span> 
+
+        <span class="c1"># Test avec un prix trop petit</span>
+            <span class="c1"># Preparation des données de l&#39;annonce </span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">234</span><span class="p">,</span> <span class="mi">115</span><span class="p">),</span> <span class="s2">&quot;#6f00ff&quot;</span><span class="p">)</span>  
+            <span class="n">image_io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+            <span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">image_io</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;JPEG&quot;</span><span class="p">)</span>
+            <span class="n">image_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="n">data1</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Test Annonce15&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;categorie&#39;</span><span class="p">:</span> <span class="s1">&#39;Vente&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Appartement&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;surface&#39;</span><span class="p">:</span> <span class="s1">&#39;300&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Test unitaire de ajouter annonce&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;prix&#39;</span><span class="p">:</span> <span class="s1">&#39;3000&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;contact&#39;</span><span class="p">:</span> <span class="s1">&#39;ki_boudjadi@esi.dz&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;wilaya&#39;</span><span class="p">:</span> <span class="s1">&#39;Alger&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;commune&#39;</span><span class="p">:</span> <span class="s1">&#39;oued semar&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;adresse&#39;</span><span class="p">:</span> <span class="s1">&#39;Appartement N 1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">image_io</span><span class="p">,</span> <span class="s1">&#39;test1.jpeg&#39;</span><span class="p">)</span>
+            <span class="p">}</span>
+
+            <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/add_annonce&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data1</span> <span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="s1">&#39;multipart/form-data&#39;</span><span class="p">)</span>
+            <span class="c1"># verifier si la reponse est correcte                                       </span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">as_text</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">],</span> <span class="s1">&#39;prix must be more than 10000&#39;</span><span class="p">)</span>
+    
+        <span class="c1"># Test avec un prix trop grand</span>
+            <span class="c1"># Preparation des données de l&#39;annonce </span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">234</span><span class="p">,</span> <span class="mi">115</span><span class="p">),</span> <span class="s2">&quot;#3f00ff&quot;</span><span class="p">)</span>  
+            <span class="n">image_io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+            <span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">image_io</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;JPEG&quot;</span><span class="p">)</span>
+            <span class="n">image_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="n">data2</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Test Annonce15&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;categorie&#39;</span><span class="p">:</span> <span class="s1">&#39;Vente&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Appartement&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;surface&#39;</span><span class="p">:</span> <span class="s1">&#39;300&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Test unitaire de ajouter annonce&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;prix&#39;</span><span class="p">:</span> <span class="s1">&#39;30000000000&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;contact&#39;</span><span class="p">:</span> <span class="s1">&#39;ki_boudjadi@esi.dz&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;wilaya&#39;</span><span class="p">:</span> <span class="s1">&#39;Alger&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;commune&#39;</span><span class="p">:</span> <span class="s1">&#39;oued semar&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;adresse&#39;</span><span class="p">:</span> <span class="s1">&#39;Appartement N 1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">image_io</span><span class="p">,</span> <span class="s1">&#39;test2.jpeg&#39;</span><span class="p">)</span>   
+            <span class="p">}</span>
+
+            <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/add_annonce&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data2</span> <span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="s1">&#39;multipart/form-data&#39;</span><span class="p">)</span>
+            <span class="c1"># verifier si la reponse est correcte                                        </span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">as_text</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">],</span> <span class="s1">&#39;prix must be less than 1000000000&#39;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="TestAutho"><a class="viewcode-back" href="../tests_unitaires.html#tests_unitaires.TestAutho">[docs]</a><span class="k">class</span> <span class="nc">TestAutho</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>    <span class="c1">#classe pour tester l&#39;authentification</span>
+    
+<div class="viewcode-block" id="TestAutho.test_autho"><a class="viewcode-back" href="../tests_unitaires.html#tests_unitaires.TestAutho.test_autho">[docs]</a>    <span class="k">def</span> <span class="nf">test_autho</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">app</span><span class="o">.</span><span class="n">test_client</span><span class="p">()</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+            <span class="c1">#preparation des données de l&#39;authentification</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+                 <span class="s1">&#39;NAME&#39;</span><span class="p">:</span> <span class="s1">&#39;imene boudjadi&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;EMAIL&#39;</span><span class="p">:</span> <span class="s1">&#39;ki_boudjadi@esi.dz&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;googleid&#39;</span><span class="p">:</span> <span class="s1">&#39;1111111&#39;</span>
+            <span class="p">}</span>
+            <span class="c1"># envoyer un post pour ajouter User à la base de données</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/autho&#39;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+
+            <span class="c1"># verifier si la réponse est correcte</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">get_json</span><span class="p">(),</span> <span class="p">{</span><span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+
+            <span class="c1"># verifier que User est stockée dans la base de données </span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">EMAIL</span><span class="o">=</span><span class="s1">&#39;ki_boudjadi@esi.dz&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>  <span class="c1">#recuperer l&#39;annonce en utilisant &quot;EMAIL&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNotNone</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>  <span class="c1">#verifier qu&#39;on a trouvé User</span>
+
+            <span class="c1">#verifier l&#39;égalité des autres attributs.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">NAME</span><span class="p">,</span> <span class="s1">&#39;imene boudjadi&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">googleid</span><span class="p">,</span> <span class="mi">1111111</span><span class="p">)</span>   </div></div>
+
+
+<div class="viewcode-block" id="DeleteAnnonceTestCase"><a class="viewcode-back" href="../tests_unitaires.html#tests_unitaires.DeleteAnnonceTestCase">[docs]</a><span class="k">class</span> <span class="nc">DeleteAnnonceTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>    <span class="c1">#classe pour tester la suppression de l&#39;annonce</span>
+<div class="viewcode-block" id="DeleteAnnonceTestCase.test_delete_annonce"><a class="viewcode-back" href="../tests_unitaires.html#tests_unitaires.DeleteAnnonceTestCase.test_delete_annonce">[docs]</a>    <span class="k">def</span> <span class="nf">test_delete_annonce</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="c1"># envoyer une requête DELETE à l&#39;URL avec l&#39;identifiant d&#39;une annonce qui existe </span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s1">&#39;http://localhost:5000/deleteAnnonce/13/&#39;</span><span class="p">)</span>
+        <span class="c1"># vérifier si la réponse est correcte</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">(),</span> <span class="p">{</span><span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+    <span class="c1"># envoyer une requête DELETE à l&#39;URL avec un identifiant d&#39;annonce qui n&#39;existe pas</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s1">&#39;http://localhost:5000/deleteAnnonce/10000/&#39;</span><span class="p">)</span>
+        <span class="c1"># vérifier si la réponse est correcte</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">(),</span> <span class="p">{</span><span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span></div></div>
+
+
+<span class="c1">################### Lancement des tests unitaires #################</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">MOBI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Code du module</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Recherche rapide</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Tp.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,395 @@
+
+<!DOCTYPE html>
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>app &#8212; Documentation MOBI </title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/translations.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Recherche" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Code source de app</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span> 
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">abort</span>
+<span class="kn">import</span> <span class="nn">os</span> 
+<span class="kn">import</span> <span class="nn">sqlite3</span>  <span class="c1">#la base de données utilisées est SQLite</span>
+<span class="kn">from</span> <span class="nn">flask_sqlalchemy</span> <span class="kn">import</span> <span class="n">SQLAlchemy</span> <span class="c1">#SQLAlchemy une bibliothèque qui permet de faire la liaison entre la base de données relationnelle (SQLite) et les objets python</span>
+<span class="kn">from</span> <span class="nn">flask_marshmallow</span> <span class="kn">import</span> <span class="n">Marshmallow</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">jsonify</span> <span class="p">,</span> <span class="n">render_template</span> <span class="p">,</span> <span class="n">redirect</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">Response</span> <span class="c1"># pour envoyer des requetes </span>
+<span class="kn">from</span> <span class="nn">werkzeug.utils</span> <span class="kn">import</span> <span class="n">secure_filename</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">datetime</span> <span class="c1">#pour stocker la date de l&#39;annonce </span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">make_response</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">json</span>
+<span class="kn">from</span> <span class="nn">static.models</span> <span class="kn">import</span> <span class="n">Annonce</span> <span class="p">,</span> <span class="n">User</span>
+<span class="kn">from</span> <span class="nn">static.db</span> <span class="kn">import</span> <span class="n">db_init</span> <span class="p">,</span> <span class="n">db</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">request</span> <span class="p">,</span> <span class="n">session</span>
+<span class="kn">from</span> <span class="nn">flask_oauthlib.client</span> <span class="kn">import</span> <span class="n">OAuth</span>
+<span class="kn">from</span> <span class="nn">flask_session</span> <span class="kn">import</span> <span class="n">Session</span>
+
+<span class="c1">######################################</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1">######################################</span>
+
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;SECRET&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;secret12345&quot;</span> <span class="c1">#secret key</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;SQLALCHEMY_DATABASE_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;sqlite:///tpigl.sqlite&quot;</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;UPLOAD_FOLDER&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;static/images&#39;</span>
+
+<span class="c1">######################################</span>
+<span class="c1"># initialiser la base de données </span>
+<span class="n">db_init</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="home"><a class="viewcode-back" href="../app.html#app.home">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">home</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;index2.html&#39;</span><span class="p">)</span></div>
+
+
+
+<span class="c1">####################### Authentification #######################</span>
+<div class="viewcode-block" id="Autho"><a class="viewcode-back" href="../app.html#app.Autho">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/autho&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">Autho</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Autho permet d&#39;authentifier en utilisant Single Sign-On (SSO) via Google , la méthode utilisée est POST.</span>
+
+<span class="sd">    :return: true </span>
+<span class="sd">    :rtype: JSON</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">app</span><span class="o">.</span><span class="n">app_context</span><span class="p">():</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">create_all</span><span class="p">()</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">User</span> <span class="p">(</span><span class="n">NAME</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">json</span><span class="p">[</span><span class="s1">&#39;NAME&#39;</span><span class="p">],</span>  <span class="c1"># Creer une instance user avec les informations recupéré</span>
+                     <span class="n">EMAIL</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">json</span><span class="p">[</span><span class="s1">&#39;EMAIL&#39;</span><span class="p">],</span>
+                     <span class="n">googleid</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">json</span><span class="p">[</span><span class="s1">&#39;googleid&#39;</span><span class="p">])</span>
+            <span class="n">users</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>   
+            <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1">#il faut verifier que cet User n&#39;est pas encore ajouté à la base de donnees (existe déja)</span>
+            <span class="k">for</span> <span class="n">userr</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">userr</span><span class="o">.</span><span class="n">EMAIL</span> <span class="o">==</span> <span class="n">user</span><span class="o">.</span><span class="n">EMAIL</span><span class="p">:</span> 
+                    <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">userr</span><span class="p">)</span>
+                
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">results</span><span class="p">:</span>
+                <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>  <span class="c1"># on ajoute ce User a la base de données </span>
+                <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>    
+            
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span> <span class="c1"># retourne vrai</span></div>
+ 
+
+  
+<span class="c1">###################  Ajouter une annonce  #####################</span>
+<div class="viewcode-block" id="add_annonce"><a class="viewcode-back" href="../app.html#app.add_annonce">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/add_annonce&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span> 
+<span class="k">def</span> <span class="nf">add_annonce</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ajouter annonce permet d&#39;ajouter une annonce dans la base de données en récupérant les informations nécessaires à partir du formulaire. </span>
+
+<span class="sd">    :return: une annonce ajoutée en format JSON si les informations entrées sont valide sinon un message d&#39;erreur </span>
+<span class="sd">    :rtype: JSON</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="k">with</span> <span class="n">app</span><span class="o">.</span><span class="n">app_context</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>  <span class="c1">#la methode est POST</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">create_all</span><span class="p">()</span> <span class="c1"># creation de la BDD si non deja crée</span>
+
+            <span class="n">image</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span>  
+            <span class="k">if</span> <span class="n">image</span> <span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">secure_filename</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+                <span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;UPLOAD_FOLDER&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">)</span>
+            
+            <span class="n">annonce</span> <span class="o">=</span> <span class="n">Annonce</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>  <span class="c1">#creer l&#39;annonce avec les attributs récupérés du formulaire</span>
+                            <span class="n">categorie</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;categorie&#39;</span><span class="p">],</span>
+                            <span class="nb">type</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span>
+                            <span class="n">surface</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;surface&#39;</span><span class="p">],</span>
+                            <span class="n">description</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">],</span>
+                            <span class="n">prix</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;prix&#39;</span><span class="p">],</span>
+                            <span class="n">contact</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;contact&#39;</span><span class="p">],</span>
+                            <span class="n">wilaya</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;wilaya&#39;</span><span class="p">],</span>
+                            <span class="n">commune</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;commune&#39;</span><span class="p">],</span>
+                            <span class="n">adresse</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;adresse&#39;</span><span class="p">],</span>
+                            <span class="n">image</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="n">date</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">())</span>
+            <span class="n">prix</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">prix</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">prix</span> <span class="o">&lt;</span> <span class="mi">10000</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;error&#39;</span><span class="p">:</span><span class="s1">&#39;prix must be more than 10000&#39;</span><span class="p">})</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">prix</span> <span class="o">&gt;</span> <span class="mi">1000000000</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;error&#39;</span><span class="p">:</span><span class="s1">&#39;prix must be less than 1000000000&#39;</span><span class="p">})</span>
+    
+            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">annonce</span><span class="p">)</span>   <span class="c1">#ajouter l&#39;annonce à la BDD</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+  
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">to_json</span><span class="p">())</span> <span class="c1"># retourne l&#39;annonce ajoutée en format JSON</span>
+
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;add_annonce.html&#39;</span><span class="p">)</span></div>
+
+<span class="c1">####################  Supprimer annonce  ####################</span>
+<div class="viewcode-block" id="delete"><a class="viewcode-back" href="../app.html#app.delete">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/deleteAnnonce/&lt;id&gt;/&quot;</span><span class="p">,</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>  <span class="c1"># la méthode est DELETE</span>
+<span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>  <span class="c1">#récuperer l’identifiant  de l&#39;annonce</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Supprimer annonce supprime une annonce de la base de données par l&#39;utilisateur qui la créé.</span>
+
+<span class="sd">    :param id: l&#39;identifiant de l&#39;annonce à supprimer</span>
+<span class="sd">    :return: si  l&#39;annonce que l&#39;utilisateur veut supprimer existe , elle sera supprimer et la methode retourne &quot;True&quot; sinon &quot;Faux&quot;</span>
+<span class="sd">    :rtype: JSON</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">myData</span> <span class="o">=</span> <span class="n">Annonce</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>  <span class="c1"># chercher l&#39;annonce qui a cet identifiant</span>
+    <span class="k">if</span> <span class="n">myData</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>    <span class="c1">#si non trouvé c&#39;est a dire cette annonce n&#39;existe pas </span>
+       <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>  <span class="c1">#retourne faux </span>
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">myData</span><span class="p">)</span>  <span class="c1">#si cette annonce est trouvée , on la supprime de la base de données</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span> <span class="c1"># retourne vrai   </span></div>
+
+
+<span class="c1">########################### Delete User ############################</span>
+<span class="c1"># permet de supprimer un utilisateur de la BDD en spécifiant son identifiant (id) </span>
+<div class="viewcode-block" id="deleteUser"><a class="viewcode-back" href="../app.html#app.deleteUser">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/deleteUser/&lt;id&gt;/&quot;</span><span class="p">,</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>    <span class="c1"># la méthode est DELETE</span>
+<span class="k">def</span> <span class="nf">deleteUser</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>   
+
+    <span class="n">myData</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>   <span class="c1">#récuperer l’identifiant  du User qu&#39;on veut supprimer </span>
+    <span class="k">if</span> <span class="n">myData</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>      <span class="c1">#si l&#39;utilisateur n&#39;existe pas </span>
+       <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>  <span class="c1"># retourne faux </span>
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">myData</span><span class="p">)</span>  <span class="c1"># sinon on le supprime de la BDD</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>  <span class="c1"># retourne vrai </span></div>
+<span class="c1">####################  Afficher les annonces  ####################</span>
+<span class="c1">#permet d&#39;afficher toutes les annonces en commençant par les plus récentes</span>
+<div class="viewcode-block" id="get_annonces"><a class="viewcode-back" href="../app.html#app.get_annonces">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/affichAnnonces&quot;</span><span class="p">,</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>  <span class="c1"># la méthode est GET</span>
+<span class="k">def</span> <span class="nf">get_annonces</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    get_annonces affiche toutes les annonces ajoutées par les différents utilisateurs.</span>
+
+<span class="sd">    :return: toutes annonces qui se trouvent dans la base de données</span>
+<span class="sd">    :rtype: JSON</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">annonces</span> <span class="o">=</span> <span class="n">Annonce</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="c1">#on recupere toutes les annonces de la BDD</span>
+    <span class="n">sorted_annonces</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">annonces</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># On les trie en commençant par les plus récentes.</span>
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">([</span><span class="n">annonce</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">annonce</span> <span class="ow">in</span> <span class="n">sorted_annonces</span><span class="p">])</span> <span class="c1"># on les affiche en utilisant une boucle</span></div>
+
+
+<span class="c1">####################  Afficher les details de l&#39;annonce  ####################</span>
+<span class="c1"># cette route permet d&#39;afficher les détails d&#39;une annonce c&#39;est à dire toutes ses informations </span>
+<div class="viewcode-block" id="detail"><a class="viewcode-back" href="../app.html#app.detail">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/detailAnnonce/&lt;id&gt;/&quot;</span><span class="p">,</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span> <span class="c1">#la méthode est GET</span>
+<span class="k">def</span> <span class="nf">detail</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    afficher les détails d&#39;une annonce spécifique.</span>
+
+<span class="sd">    :param id: l&#39;identifiant de l&#39;annonce qu&#39;on veut afficher ses details</span>
+<span class="sd">    :return: toutes les informations de l&#39;annoce</span>
+<span class="sd">    :rtype: JSON</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Annoncee</span> <span class="o">=</span> <span class="n">Annonce</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>  <span class="c1">#on cherche l&#39;annonce en utilisant l&#39;id</span>
+    <span class="k">if</span> <span class="n">Annoncee</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1">#si elle n&#39;existe pas </span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>  <span class="c1">#on retourne faux </span>
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">Annoncee</span><span class="o">.</span><span class="n">to_json</span><span class="p">())</span>  <span class="c1">#sinon on retourne toutes ses informations en format JSON</span></div>
+
+
+<span class="c1">###################### Afficher l&#39;image d&#39;une annonce ########################</span>
+<div class="viewcode-block" id="annonce_photo"><a class="viewcode-back" href="../app.html#app.annonce_photo">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/img/&lt;int:annonce_id&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span> <span class="c1"># la methode utilisee et GET</span>
+<span class="k">def</span> <span class="nf">annonce_photo</span><span class="p">(</span><span class="n">annonce_id</span><span class="p">):</span>
+    <span class="n">annonce</span> <span class="o">=</span> <span class="n">Annonce</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">annonce_id</span><span class="p">)</span>  <span class="c1"># on cherche l&#39;annonce par son id  </span>
+    <span class="k">if</span> <span class="n">annonce</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span> <span class="c1">#si on trouvé retourne faux</span>
+    <span class="c1">#sinon</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span><span class="n">annonce</span><span class="o">.</span><span class="n">image</span><span class="p">)</span> <span class="c1">#on recupere l&#39;image de l&#39;annonce de la BDD</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">,</span> <span class="s1">&#39;image/jpeg&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span>  <span class="c1">#on retourne l&#39;image</span></div>
+    
+
+<span class="c1">################# Recherche ########################</span>
+<span class="c1">#permet de rechercher, dans le titre et la description, toutes les AI contenant un ou plusieurs mots spécifiés par l’utilisateur.</span>
+<div class="viewcode-block" id="search"><a class="viewcode-back" href="../app.html#app.search">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/search&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span> <span class="c1">#la methode est GET</span>
+<span class="k">def</span> <span class="nf">search</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rechercher, dans le titre et la description, toutes les annonces immobilières contenant un ou plusieurs mots spécifiés par l&#39;utilisateur.</span>
+
+<span class="sd">    :return: les annonces trouvées apres la recherche</span>
+<span class="sd">    :rtype: JSON</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">keywords</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;keywords&quot;</span><span class="p">)</span>  <span class="c1">#on recupére les mots clés</span>
+    <span class="n">keywords</span> <span class="o">=</span> <span class="n">keywords</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="c1"># on les sépare pour vérifier chaque clé </span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">keywords</span><span class="p">:</span>  
+        <span class="k">return</span> <span class="s2">&quot;Please provide a search query&quot;</span><span class="p">,</span> <span class="mi">400</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1">#on initialise la liste des résultats à vide</span>
+    <span class="n">annonces</span> <span class="o">=</span> <span class="n">Annonce</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="c1"># on recupere toutes les annonces de la BDD</span>
+    <span class="k">for</span> <span class="n">annonce</span> <span class="ow">in</span> <span class="n">annonces</span><span class="p">:</span>  <span class="c1"># boucle pour verifier toutes les annonces</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">keyword</span> <span class="ow">in</span> <span class="n">annonce</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="n">keyword</span> <span class="ow">in</span> <span class="n">annonce</span><span class="o">.</span><span class="n">description</span> <span class="k">for</span> <span class="n">keyword</span> <span class="ow">in</span> <span class="n">keywords</span><span class="p">):</span>  <span class="c1"># pour tout les mots clés , si on trouve un mot dans le titre ou la description de l&#39;AI</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">annonce</span><span class="p">)</span>  <span class="c1"># on ajoute cette annonce à la liste des resultats</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">results</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;No matching ads found&quot;</span><span class="p">,</span> <span class="mi">404</span>
+    <span class="k">else</span> <span class="p">:</span>
+        <span class="n">sorted_annonces</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># on trie les resultats pour les afficher en commençant par les plus récentes  </span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">([</span><span class="n">Annonce</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">Annonce</span> <span class="ow">in</span> <span class="n">sorted_annonces</span><span class="p">])</span> <span class="c1"># on les retourne en format JSON</span></div>
+
+
+<span class="c1">############# filtrage entre deux dates ############</span>
+<span class="c1"># permet d&#39;afficher les anoonces ajoutées entre deux dates de publication</span>
+<div class="viewcode-block" id="filtered_annonces"><a class="viewcode-back" href="../app.html#app.filtered_annonces">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/annonces/&lt;startDate&gt;/&lt;endDate&gt;&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">filtered_annonces</span><span class="p">(</span><span class="n">startDate</span><span class="p">,</span> <span class="n">endDate</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    filtrer les annonces immobilières selon la période entre deux dates de publication</span>
+
+<span class="sd">    :param startDate: la date de début de la période</span>
+<span class="sd">    :param endDate: la date de fin de la période</span>
+<span class="sd">    :return: les annonces trouvées apres le filtrage</span>
+<span class="sd">    :rtype: JSON</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">startDate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">startDate</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>  <span class="c1">#on recupere la date de debut </span>
+    <span class="n">endDate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">endDate</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span> <span class="c1">#et la date de fin  </span>
+    <span class="n">annonces</span> <span class="o">=</span> <span class="n">Annonce</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Annonce</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">between</span><span class="p">(</span><span class="n">startDate</span><span class="p">,</span> <span class="n">endDate</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="c1">#on filtre les annonces afin de trouver les annonces ajoutees entre la date de debut et de fin </span>
+    
+    <span class="c1"># return render_template(&#39;annonces.html&#39;, annonces=annonces)</span>
+    <span class="n">annonces</span> <span class="o">=</span>  <span class="nb">sorted</span><span class="p">(</span><span class="n">annonces</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># en les trie en commençant par les plus récentes  </span>
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">([</span><span class="n">annonce</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">annonce</span> <span class="ow">in</span> <span class="n">annonces</span><span class="p">])</span> <span class="c1"># on retourne les annonces trouvées en format JSON </span></div>
+
+
+<span class="c1">####################### Afficher mes annonces #######################</span>
+<span class="c1"># Permet a un utilisateur d&#39;afficher ou de visualiser ses annonces seulement </span>
+<div class="viewcode-block" id="afficher_annonces_utilisateur"><a class="viewcode-back" href="../app.html#app.afficher_annonces_utilisateur">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/MesAnnonces/&lt;email&gt;&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">afficher_annonces_utilisateur</span><span class="p">(</span><span class="n">email</span><span class="p">):</span>  
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Afficher les annonces immobilières ajoutées par un utilisateur (l&#39;utilisateur veut afficher ses annonces)</span>
+
+<span class="sd">    :param email: l&#39;email de ce utilisateur</span>
+<span class="sd">    :return: les annonces de l&#39;utilisateur</span>
+<span class="sd">    :rtype: JSON</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">annonces</span><span class="o">=</span> <span class="n">Annonce</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="c1"># on recupere les annonces de la BDD</span>
+    <span class="n">annonces</span> <span class="o">=</span>  <span class="nb">sorted</span><span class="p">(</span><span class="n">annonces</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># en les trie en commençant par les plus récentes  </span>
+    <span class="n">annonces_utilisateur</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># on initialise la liste &quot;annonces_utilisateur&quot; à vide </span>
+    <span class="k">for</span> <span class="n">annonce</span> <span class="ow">in</span> <span class="n">annonces</span> <span class="p">:</span>  <span class="c1"># on parcourt les annonces </span>
+        <span class="k">if</span> <span class="n">annonce</span><span class="o">.</span><span class="n">contact</span> <span class="o">==</span><span class="n">email</span><span class="p">:</span>    <span class="c1"># si l&#39;utilisateur qui a crée l&#39;annonce est le meme que l&#39;utilisateur courant </span>
+            <span class="n">annonces_utilisateur</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">annonce</span><span class="p">)</span>   <span class="c1"># on ajoute cette annonce à &quot;annonces_utilisateur&quot;</span>
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">([</span><span class="n">Annonce</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">Annonce</span> <span class="ow">in</span> <span class="n">annonces_utilisateur</span><span class="p">])</span>  <span class="c1"># retourne les annonces du resultat en format JSON   </span></div>
+
+
+<span class="c1">############## filtrage de l&#39;annonce ###############</span>
+<span class="c1"># cette route filtre les annonces selon le type , la wilaya ou la commune</span>
+<div class="viewcode-block" id="filtrer"><a class="viewcode-back" href="../app.html#app.filtrer">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/filtreAd&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>  <span class="c1">#la methode est GET</span>
+<span class="k">def</span> <span class="nf">filtrer</span><span class="p">():</span> 
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    filtrer les annonces immobilières selon le type , la wilaya ou la commune </span>
+<span class="sd">   </span>
+<span class="sd">    :return: les annonces trouvées apres le filtrage </span>
+<span class="sd">    :rtype: JSON   </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">filtre</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filtre&quot;</span><span class="p">)</span> <span class="c1"># on recupere le critère de filtrage (type , wilaya ou commune)</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>  <span class="c1"># on récupere l&#39;information supplémentaire </span>
+    <span class="n">filtered_annonces</span> <span class="o">=</span> <span class="n">Annonce</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="c1"># on recupere les annonces de la BDD</span>
+    <span class="n">filtered_annonces</span> <span class="o">=</span>  <span class="nb">sorted</span><span class="p">(</span><span class="n">filtered_annonces</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># n les trie en commençant par les plus récentes  </span>
+    <span class="k">if</span> <span class="n">filtre</span> <span class="o">==</span> <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="c1"># si le critère est le type , </span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">annonce</span> <span class="ow">in</span> <span class="n">filtered_annonces</span><span class="p">:</span> <span class="c1"># on parcourt la liste des anonces</span>
+            <span class="k">if</span> <span class="n">annonce</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">info</span> <span class="p">:</span>   <span class="c1"># si le type de l&#39;annonce est le meme que le type entré </span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">annonce</span><span class="p">)</span>  <span class="c1"># alors on ajoute cette annonce aux resultat</span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">([</span><span class="n">Annonce</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">Annonce</span> <span class="ow">in</span> <span class="n">result</span><span class="p">])</span> <span class="c1"># on les retourne en format JSON</span>
+
+    <span class="k">elif</span> <span class="n">filtre</span> <span class="o">==</span> <span class="s2">&quot;wilaya&quot;</span> <span class="p">:</span> <span class="c1"># si le critère est la wilaya</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">annonce</span> <span class="ow">in</span> <span class="n">filtered_annonces</span><span class="p">:</span> <span class="c1">#on parcourt la liste des anonces</span>
+            <span class="k">if</span> <span class="n">annonce</span><span class="o">.</span><span class="n">wilaya</span> <span class="o">==</span> <span class="n">info</span> <span class="p">:</span>  <span class="c1"># si la wilaya de l&#39;annonce est la meme que la wilaya entrée</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">annonce</span><span class="p">)</span>   <span class="c1"># alors on ajoute cette annonce aux resultat</span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">([</span><span class="n">Annonce</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">Annonce</span> <span class="ow">in</span> <span class="n">result</span><span class="p">])</span> <span class="c1"># on les retourne en format JSON</span>
+
+    <span class="k">elif</span> <span class="n">filtre</span> <span class="o">==</span> <span class="s2">&quot;commune&quot;</span> <span class="p">:</span> <span class="c1"># si le critère est la commune</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">annonce</span> <span class="ow">in</span> <span class="n">filtered_annonces</span><span class="p">:</span> <span class="c1">#on parcourt la liste des anonces</span>
+            <span class="k">if</span> <span class="n">annonce</span><span class="o">.</span><span class="n">commune</span><span class="o">==</span> <span class="n">info</span> <span class="p">:</span>  <span class="c1"># si la commune de l&#39;annonce est la meme que la commune entrée</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">annonce</span><span class="p">)</span>  <span class="c1"># alors on ajoute cette annonce aux resultat</span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">([</span><span class="n">Annonce</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">Annonce</span> <span class="ow">in</span> <span class="n">result</span><span class="p">])</span> <span class="c1"># on les retourne en format JSON</span></div>
+
+
+<span class="c1">############  Lancement de l&#39;appliction  ###########</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span> <span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1">#################################################### </span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">MOBI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Code du module</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Recherche rapide</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Tp.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

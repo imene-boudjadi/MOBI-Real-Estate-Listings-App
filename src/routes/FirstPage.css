@@ -1,0 +1,63 @@
+.descr{
+  
+    padding-top: 0%;
+    padding-left: 2%;
+    padding-bottom: 5%;
+  }
+  .descr h1 {
+    font-family: 'Merriweather', serif;
+    font-size: 3rem;
+    font-weight: bold;
+  }
+  
+  .descr h {
+   
+    font-family: 'Open Sans', sans-serif;
+    padding-top: 3%;
+    font-size: 1.2rem;
+  }
+  
+  .buttons{
+    padding-top: 0%;
+    padding-left: 2%;
+  
+  }
+  .gnrl .buttons button{
+    font-family: 'Open Sans', sans-serif;
+    font-size: 90%;
+    text-align: center;
+    border-radius: 6%;
+    padding: 3% 3%;
+    margin-right: 3%;
+  }
+  
+  .b1{
+    background-color:#1C3988;
+    color: #ffff;
+    border-color: #ffff;
+   
+
+  }
+  .b2{
+    background-color: #fff;
+    color: #1C3988;
+    border-width : 5px;
+    border-color: #1C3988;
+    width: 30%;
+  }
+.gnrl{
+  padding-top :0%;
+  padding-left: 15%;
+  display: grid;
+  grid-template-columns: repeat(2,auto);
+  grid-gap: 15%;
+  
+}
+.gen1{
+    padding-top: 20%;
+    padding-left: 3%;
+}
+.imagOne{
+  padding-top: 10%;
+  padding-right: 10%;
+}

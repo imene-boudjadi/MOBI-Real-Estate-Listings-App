@@ -1,0 +1,104 @@
+
+
+.annonce{
+    
+    width: 250px;
+    height: 340px ;
+    background-color:#ffff;
+    border-radius: 3px;
+}
+.image-an{
+
+    width: 100%;
+    height: 150px;
+    background-color: #1C3988;
+   
+}
+.image-an img { 
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+    
+    
+}
+.titre{
+    color: #091638;
+    font-size: 1rem;
+    font-weight: bold;
+    font-family: 'Merriweather';
+    padding-bottom: 5px;
+}
+.prix{
+    color: #1C3988;
+    font-size: 0.8rem;
+    font-weight:600; 
+    font-family: 'Open Sans';
+    padding-bottom: 5px;
+}
+
+.catego{
+    color : #091638;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: 'Open Sans';
+    padding-bottom: 5px;
+}
+.lieu{
+    color : #091638;
+    font-size: 0.8rem;
+    font-weight: 400;
+    font-family: 'Open Sans';
+    padding-bottom: 0;
+}
+.info-annonce{
+    
+    padding-top: 20px;
+    padding-left: 20px;
+    padding-bottom: 0;
+    width: 50 px;
+    
+}
+.details{
+    padding-left: 150px;
+    display: flex;
+
+
+}
+.details button{
+    width: 75px;
+    height: 35px;
+    color: #ffff;
+    background-color: #091638;
+    font-size: 0.8rem;
+    font-weight: 300;
+    font-family: 'Open Sans';
+    border-radius: 3px;
+}
+.container{
+    margin-top:30px;
+    background-color:#F3F3FA;
+}
+.btn{
+    background-color: #091638;
+    color: aliceblue;
+}
+.main{
+    background-color:#F3F3FA;
+}
+.supprimer button{
+    width: 80px;
+    height: 35px;
+    color: #ffff;
+    background-color: #1C3988;
+    font-size: 0.8rem;
+    font-weight: 300;
+    font-family: 'Open Sans';
+    border-radius: 3px;
+}
+.lesbtn {
+
+    display: grid;
+    grid-template-columns: repeat(2,0px);
+    
+
+}

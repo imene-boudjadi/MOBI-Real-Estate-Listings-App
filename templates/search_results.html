@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <title>Résultats de la recherche</title>
+  </head>
+  <body>
+    <h1>Résultats de la recherche</h1>
+    {% if results %}
+      <ul>
+        {% for result in results %}
+          <li>
+            <h2>{{ result.titre }}</h2>
+            <p>{{ result.description }}</p>
+            <p>{{ result.adresse }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Aucun résultat trouvé</p>
+    {% endif %}
+  </body>
+</html>

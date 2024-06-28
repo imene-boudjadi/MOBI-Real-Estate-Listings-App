@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Formulaire</title>
+    </head>
+
+    <body>
+        <h1>Veuillez compléter ce formulaire</h1>
+        <!-- <form action="http://localhost:5000/add_annonce" method="post" enctype="multipart/form-data"> -->
+        <form action="http://localhost:5000/autho" method="POST" enctype="multipart/form-data">
+            <div>
+                <label for="NAME">Nom</label>
+                <input type="text" name="NAME">
+            </div>
+            <div>
+                <label for="EMAIL">email</label>
+                <input type="text" name="EMAIL">
+            </div>
+            <div>
+                <label for="googleid">googleid</label>
+                <input type="number" name="googleid">
+            </div>
+            
+            <button type="submit">Enregistrer</button>
+        </form>
+    </body>
+</html>

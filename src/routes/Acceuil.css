@@ -1,0 +1,81 @@
+.AddandSrch {
+
+    padding-left:50px;
+    display: grid;
+    grid-template-columns: repeat(2,550px);
+    padding-top: 250px;
+
+}
+.srch{
+    
+    display: grid;
+    grid-template-columns: repeat(3,auto);
+    grid-gap: 5px;
+    padding-right: 0%;
+
+}
+
+#add-an{
+    width: 250px;
+    height: 50px;
+    border-radius: 3px;
+    border-color: #091638;
+    background-color: #091638;
+    color: aliceblue;
+    display: flex;
+    padding-top: 10px;
+    padding-left: 55px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: bolder;
+    font-size:1rem;
+
+}
+
+.Filter-real{
+    width: 150px;
+    height: 50px;
+    border-radius: 3px;
+    border-color: #1C3988;
+    background-color: #ffff;
+    color: #091638;
+    display: flex;
+    padding-top: 1px;
+    padding-left: 10px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight :900;
+    font-size:1rem;
+
+}
+
+.Search input{
+    width: 400px;
+    height: 50px;
+    border-radius: 3px;
+    border-color: #1C3988;
+    background-color: #ffff;
+    display: flex;
+    padding-top: 1px;
+    padding-left: 10px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight :900;
+    font-size:1rem;
+
+}
+
+
+.Search-icon button {
+    
+    width: 150px;
+    height: 50px;
+    border-radius: 3px;
+    border-color: #1C3988;
+    background-color: #1C3988;
+    color:aliceblue;
+    display: flex;
+    padding-top: 10px;
+    padding-left: 40px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight :900;
+    font-size:1rem;
+}
+
